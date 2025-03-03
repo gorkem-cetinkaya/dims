@@ -44,6 +44,12 @@ public class CustomerController {
 
     @FXML
     void fetch(ActionEvent event) {
+        String customerIdStr = t0.getText();
+
+        if (!customerIdStr.matches("\\d+")) {
+            showErrorMessage("Please enter a valid Customer ID.");
+            return;
+        }
         int customerId = Integer.parseInt(t0.getText());
         try {
             String query = "SELECT * FROM Customers WHERE id = ?";
@@ -54,6 +60,7 @@ public class CustomerController {
             if (rs.next()) {
                 t1.setText(rs.getString("name"));
                 t2.setText(rs.getString("address"));
+                t3.setText(rs.getString("city"));
             } else {
                 showErrorMessage("No Customer Found with ID: " + customerId);
             }
@@ -67,11 +74,17 @@ public class CustomerController {
         try {
             String name = t1.getText();
             String address = t2.getText();
-            System.out.println("Saving customer with Name: " + name + " and Address: " + address);
-            String query = "INSERT INTO Customers (name, address) VALUES (?, ?)";
+            String city = t3.getText();
+            if(name.isEmpty() || address.isEmpty() || city.isEmpty()) {
+                showErrorMessage("All fields must be filled!");
+                return;
+            }
+            System.out.println("Saving customer with Name: " + name + ", Address: " + address + " and City: " + city);
+            String query = "INSERT INTO Customers (name, address, city) VALUES (?, ?, ?)";
             PreparedStatement pst = conn.prepareStatement(query);
             pst.setString(1, name);
             pst.setString(2, address);
+            pst.setString(3, city);
             pst.executeUpdate();
             showConfirmationMessage("Customer Saved Successfully!");
         } catch (SQLException e) {
@@ -85,24 +98,29 @@ public class CustomerController {
     @FXML
     void update(ActionEvent event) {
         try {
+            String customerIdStr = t0.getText();
+
+            if (!customerIdStr.matches("\\d+")) {
+                showErrorMessage("Please enter a valid Customer ID.");
+                return;
+            }
             int customerId = Integer.parseInt(t0.getText());
             String name = t1.getText();
             String address = t2.getText();
-            String query = "UPDATE Customers SET name = ?, address = ? WHERE id = ?";
+            String city = t3.getText();
+            if(name.isEmpty() || address.isEmpty() || city.isEmpty()) {
+                showErrorMessage("All fields must be filled!");
+                return;
+            }
+            String query = "UPDATE Customers SET name = ?, address = ?, city = ? WHERE id = ?";
             PreparedStatement pst = conn.prepareStatement(query);
             pst.setString(1, name);
             pst.setString(2, address);
-            pst.setInt(3, customerId);
+            pst.setString(3, city);
+            pst.setInt(4, customerId);
             int result = pst.executeUpdate();
 
             if (result > 0) {
-                String updateCustomerAccountQuery = "UPDATE customer_account SET customer_name = ?, customer_address = ? WHERE customer_id = ?";
-                PreparedStatement updatePst = conn.prepareStatement(updateCustomerAccountQuery);
-                updatePst.setString(1, name);
-                updatePst.setString(2, address);
-                updatePst.setInt(3, customerId);
-                updatePst.executeUpdate();
-
                 showConfirmationMessage("Customer Updated Successfully!");
             } else {
                 showErrorMessage("Customer ID not found!");
@@ -115,6 +133,12 @@ public class CustomerController {
 
     @FXML
     void delete(ActionEvent event) {
+        String customerIdStr = t0.getText();
+
+        if (!customerIdStr.matches("\\d+")) {
+            showErrorMessage("Please enter a valid Customer ID.");
+            return;
+        }
         try {
             int customerId = Integer.parseInt(t0.getText());
             String query = "DELETE FROM Customers WHERE id = ?";

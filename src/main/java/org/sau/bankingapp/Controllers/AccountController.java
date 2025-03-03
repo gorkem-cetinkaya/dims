@@ -29,7 +29,7 @@ public class AccountController {
     private Button b1, b2, b3, b4, b5, b6;
 
     @FXML
-    private TextField t0, t1, t2, t3;
+    private TextField t0, t1, t2;
 
     private Connection conn = DBConnection.getConnection();
 
@@ -45,6 +45,12 @@ public class AccountController {
 
     @FXML
     void fetch(ActionEvent event) {
+        String accountsIdStr = t0.getText();
+
+        if (!accountsIdStr.matches("\\d+")) {
+            showErrorMessage("Please enter a valid Account ID.");
+            return;
+        }
         String accountsId = t0.getText();
         if (accountsId.isEmpty()) {
             showErrorMessage("Account ID is required to fetch data!");
@@ -60,7 +66,6 @@ public class AccountController {
             if (rs.next()) {
                 t1.setText(rs.getString("branch"));
                 t2.setText(rs.getBigDecimal("balance").toString());
-                t3.setText(String.valueOf(rs.getInt("customer_id")));
             } else {
                 showErrorMessage("Account not found!");
             }
@@ -74,31 +79,20 @@ public class AccountController {
     void save(ActionEvent event) {
         String branch = t1.getText();
         String balanceStr = t2.getText();
-        String customerIdStr = t3.getText();
 
-        if (branch.isEmpty() || balanceStr.isEmpty() || customerIdStr.isEmpty()) {
+        if (branch.isEmpty() || balanceStr.isEmpty()) {
             showErrorMessage("All fields must be filled!");
             return;
         }
 
         try {
             BigDecimal balance = new BigDecimal(balanceStr);
-            int customerId = Integer.parseInt(customerIdStr);
 
-            String query = "INSERT INTO Account (branch, balance, customer_id) VALUES (?, ?, ?)";
+            String query = "INSERT INTO Account (branch, balance) VALUES (?, ?)";
             PreparedStatement pst = conn.prepareStatement(query);
             pst.setString(1, branch);
             pst.setBigDecimal(2, balance);
-            pst.setInt(3, customerId);
             pst.executeUpdate();
-
-            String customerAccountQuery = "INSERT INTO customer_account (customer_id, account_id, branch, balance, customer_name, customer_address) " +
-                    "SELECT c.id, a.id, a.branch, a.balance, c.name, c.address " +
-                    "FROM Customers c, Account a " +
-                    "WHERE a.customer_id = c.id AND a.customer_id = ?";
-            PreparedStatement customerAccountPst = conn.prepareStatement(customerAccountQuery);
-            customerAccountPst.setInt(1, customerId);
-            customerAccountPst.executeUpdate();
 
             showConfirmationMessage("Account saved successfully!");
         } catch (SQLException e) {
@@ -112,32 +106,29 @@ public class AccountController {
         String accountsId = t0.getText();
         String branch = t1.getText();
         String balanceStr = t2.getText();
-        String customerIdStr = t3.getText();
 
-        if (accountsId.isEmpty() || branch.isEmpty() || balanceStr.isEmpty() || customerIdStr.isEmpty()) {
+        if (accountsId.isEmpty() || branch.isEmpty() || balanceStr.isEmpty()) {
             showErrorMessage("All fields must be filled!");
             return;
         }
 
         try {
-            BigDecimal balance = new BigDecimal(balanceStr);
-            int customerId = Integer.parseInt(customerIdStr);
+            String accountsIdStr = t0.getText();
 
-            String query = "UPDATE Account SET branch = ?, balance = ?, customer_id = ? WHERE id = ?";
+            if (!accountsIdStr.matches("\\d+")) {
+                showErrorMessage("Please enter a valid Account ID.");
+                return;
+            }
+            BigDecimal balance = new BigDecimal(balanceStr);
+
+            String query = "UPDATE Account SET branch = ?, balance = ? WHERE id = ?";
             PreparedStatement pst = conn.prepareStatement(query);
             pst.setString(1, branch);
-            pst.setBigDecimal(2, balance);
-            pst.setInt(3, customerId);
-            pst.setInt(4, Integer.parseInt(accountsId));
+            pst.setBigDecimal(2, balance);;
+            pst.setInt(3, Integer.parseInt(accountsId));
             int result = pst.executeUpdate();
 
             if (result > 0) {
-                String updateCustomerAccountQuery = "UPDATE customer_account SET branch = ?, balance = ? WHERE account_id = ?";
-                PreparedStatement updatePst = conn.prepareStatement(updateCustomerAccountQuery);
-                updatePst.setString(1, branch);
-                updatePst.setBigDecimal(2, balance);
-                updatePst.setInt(3, Integer.parseInt(accountsId));
-                updatePst.executeUpdate();
 
                 showConfirmationMessage("Account updated successfully!");
             } else {
@@ -151,6 +142,12 @@ public class AccountController {
 
     @FXML
     void delete(ActionEvent event) {
+        String accountsIdStr = t0.getText();
+
+        if (!accountsIdStr.matches("\\d+")) {
+            showErrorMessage("Please enter a valid Account ID.");
+            return;
+        }
         String accountsId = t0.getText();
         if (accountsId.isEmpty()) {
             showErrorMessage("Account ID is required to delete!");
@@ -158,11 +155,6 @@ public class AccountController {
         }
 
         try {
-            String deleteCustomerAccountQuery = "DELETE FROM customer_account WHERE account_id = ?";
-            PreparedStatement deletePst = conn.prepareStatement(deleteCustomerAccountQuery);
-            deletePst.setInt(1, Integer.parseInt(accountsId));
-            deletePst.executeUpdate();
-
             String query = "DELETE FROM Account WHERE id = ?";
             PreparedStatement pst = conn.prepareStatement(query);
             pst.setInt(1, Integer.parseInt(accountsId));

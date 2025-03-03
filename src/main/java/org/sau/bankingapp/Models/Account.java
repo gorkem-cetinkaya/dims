@@ -42,16 +42,8 @@ public class Account {
         this.balance = balance;
     }
 
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
-
     @Override
     public String toString() {
-        return "Account{id=" + id + ", branch='" + branch + "', balance=" + balance + ", customerId=" + customerId + "}";
+        return "Account{id=" + id + ", branch='" + branch + "', balance=" + balance +"}";
     }
 }
