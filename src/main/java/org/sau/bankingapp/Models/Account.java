@@ -6,16 +6,14 @@ public class Account {
     private int id;
     private String branch;
     private BigDecimal balance;
-    private int customerId;
 
     public Account() {
     }
 
-    public Account(int id, String branch, BigDecimal balance, int customerId) {
+    public Account(int id, String branch, BigDecimal balance) {
         this.id = id;
         this.branch = branch;
         this.balance = balance;
-        this.customerId = customerId;
     }
 
     public int getId() {
